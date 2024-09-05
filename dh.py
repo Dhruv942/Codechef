@@ -1,79 +1,57 @@
-import datetime as mydate
+import subprocess
+from datetime import datetime, timedelta
 import os
-import random
-import uuid
 
-import git
+def run_command(command, env=None):
+    """Run a shell command with optional environment variables."""
+    result = subprocess.run(command, shell=True, capture_output=True, text=True, env=env)
+    if result.returncode != 0:
+        print(f"Error: {result.stderr}")
+    return result
 
+def make_commit(commit_message, commit_date):
+    """Create a fake commit with the specified message and date."""
+    # Create or modify a dummy file to change its content
+    with open("fake_file.txt", "a") as file:
+        file.write(f"Commit made on {commit_date}\n")
+    
+    # Add changes to the staging area
+    run_command("git add .")
+    
+    # Set commit date using environment variables
+    env = os.environ.copy()
+    env["GIT_AUTHOR_DATE"] = commit_date
+    env["GIT_COMMITTER_DATE"] = commit_date
 
-class FakeGit:
-    def __init__(self):
-        self.project_dir = os.path.realpath(os.path.dirname(__file__))
-        self.min_commits = 45
-        self.max_commits = 113
-        self.repo = None
-        self.remote_url = "https://github.com/theveloper-pl/Fake-Git-History.git"
-        self.repo_name = self.remote_url.split("/")[-1].split(".")[0]
-        print("[Info]: Starting")
+    # Make the commit with the specified date and commit message
+    run_command(f'git commit -m "{commit_message}"', env=env)
 
-    def load_repo(self):
-        try:
-            print("[Info]: Loading git repository")
-            self.repo = git.Repo(os.path.join(self.project_dir, self.repo_name))
-            print("[Info]: Repo loaded")
-        except git.exc.NoSuchPathError:
-            print("[Error]: Repo not found. Creating new one from remote-url")
-            os.mkdir(os.path.join(self.project_dir, self.repo_name))
-            self.repo = git.Repo.clone_from(self.remote_url, os.path.join(self.project_dir, self.repo_name))
+def generate_commits_for_date_range(start_date, end_date, commit_message):
+    """Generate fake commits for each day in the specified date range with the given commit message."""
+    current_date = start_date
 
-    def execute_commit(self, year: int, month: int, day: int):
-        action_date = str(mydate.date(year, month, day).strftime('%Y-%m-%d %H:%M:%S'))
-        os.environ["GIT_AUTHOR_DATE"] = action_date
-        os.environ["GIT_COMMITTER_DATE"] = action_date
-        self.repo.index.commit(message=f"{(uuid.uuid4())}")
+    while current_date <= end_date:
+        # Format the date for the commit
+        formatted_date = current_date.strftime('%Y-%m-%dT%H:%M:%S')
+        print(f"Creating commit on {current_date.strftime('%Y-%m-%d')} with message: {commit_message}")
 
-    def single_commit(self, year: int, month: int, day: int):
-        current_date = mydate.date(year, month, day)
-        commits_amount = random.randint(self.min_commits, self.max_commits)
-        print(f"Currently commiting {current_date} with {commits_amount} commits")
-        for x in range(commits_amount):
-            self.execute_commit(current_date.year, current_date.month, current_date.day)
+        # Create the commit with the given message
+        make_commit(commit_message, formatted_date)
 
-    def many_commits(self, commit_start_date, commit_stop_date, mix=False):
-        while True:
-            self.single_commit(commit_start_date.year, commit_start_date.month, commit_start_date.day)
-            random_days = random.randint(3, 9)
-            if mix:
-                commit_start_date = commit_start_date + mydate.timedelta(days=random_days)
-            else:
-                commit_start_date = commit_start_date + mydate.timedelta(days=1)
-            if commit_start_date >= commit_stop_date:
-                break
-
-    def git_push(self):
-        try:
-            origin = self.repo.remote(name='origin')
-            origin.push()
-        except Exception as e:
-            print(f'Error occurred while pushing the code !:\n{e}')
-        else:
-            print("Changes have been pushed !")
-
+        # Move to the next day
+        current_date += timedelta(days=1)
 
 if __name__ == "__main__":
-    FakeGit = FakeGit()
-    FakeGit.load_repo()
+    # Initialize a Git repository if not already done
+    if not os.path.exists(".git"):
+        run_command("git init")
 
-    if input("1.Create single commit\n2.Range of commits\n>> ") == '1':
-        provided_data = [int(x) for x in input("Date in format YYYY/MM/DD\n>> ").split("/")]
-        FakeGit.single_commit(provided_data[0], provided_data[1], provided_data[2])
-        FakeGit.git_push()
-    else:
-        start_date = [int(x) for x in input("Start date in format YYYY/MM/DD\n>> ").split("/")]
-        stop_date = [int(x) for x in input("Stop date in format YYYY/MM/DD\n>> ").split("/")]
+    # Define the date range (from 6th October 2024 to 15th October 2024)
+    start_date = datetime.strptime("2024-09-06", "%Y-%m-%d")
+    end_date = datetime.strptime("2024-10-15", "%Y-%m-%d")
 
-        start_date = mydate.date(start_date[0], start_date[1], start_date[2])
-        stop_date = mydate.date(stop_date[0], stop_date[1], stop_date[2])
+    # Define the specific commit message
+    commit_message = "commit"
 
-        FakeGit.many_commits(start_date, stop_date)
-        FakeGit.git_push()
+    # Generate commits for the specified date range with the commit message
+    generate_commits_for_date_range(start_date, end_date, commit_message)
