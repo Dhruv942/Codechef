@@ -1,0 +1,66 @@
+#include <bits/stdc++.h> 
+using namespace std;
+
+int main() {
+    int n, m; 
+    cin >> n >> m; 
+    
+    vector<vector<int>> cust; 
+    for (int i = 0; i < n; i++) {
+        int q, p; // Variables for quantity and cost
+        cin >> q >> p; // Read quantity (q) and cost (p) for each customer
+        cust.push_back({p, q}); // Store customer as {cost, quantity} in the vector
+    }
+
+    vector<vector<int>> rice; // Vector to store rice bag details (cost, quantity)
+    for (int i = 0; i < m; i++) {
+        int q, p; // Variables for quantity and cost of rice bags
+        cin >> q >> p; // Read quantity (q) and cost (p) for each rice bag
+        rice.push_back({p, q}); // Store rice bag as {cost, quantity} in the vector
+    }
+
+    // Sort customers by cost (ascending order)
+    sort(cust.begin(), cust.end());
+    // Sort rice bags by cost (ascending order)
+    sort(rice.begin(), rice.end());
+
+    vector<int> good(m, 0); // Vector to track which rice bags have been used (0 = unused, 1 = used)
+    int ans = 0; // Variable to count the total number of satisfied customers
+
+    // Loop through each customer
+    for (int i = 0; i < n; i++) {
+        int quan = -1; // Variable to store the quantity of the selected rice bag
+        int index = -1; // Variable to store the index of the selected rice bag
+
+        // Loop through each rice bag
+        for (int j = 0; j < m; j++) {
+            // Check if the rice bag has not been used
+            if (!good[j]) {
+                // If the cost of the rice bag is greater than the customer's budget, stop checking further
+                if (rice[j][0] > cust[i][0]) break;
+
+                // If the rice bag quantity is greater than the customer's quantity preference
+                if (rice[j][1] > cust[i][1]) {
+                    // If this is the first suitable rice bag found
+                    if (quan == -1) {
+                        quan = rice[j][1]; // Set quantity
+                        index = j; // Store the index of this rice bag
+                    } else {
+                        // If we have found a better rice bag (with smaller quantity)
+                        if (quan > rice[j][1]) {
+                            index = j; // Update index
+                            quan = rice[j][1]; // Update quantity
+                        }
+                    }
+                }
+            }
+        }
+        // If a suitable rice bag was found for this customer
+        if (index != -1) {
+            good[index] = 1; // Mark the rice bag as used
+            ans++; // Increment the count of satisfied customers
+        }
+    }
+
+    cout << ans; // Output the total number of satisfied customers
+}
