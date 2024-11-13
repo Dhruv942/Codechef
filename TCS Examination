@@ -1,0 +1,57 @@
+#include<iostream>
+using namespace std;
+
+void inputArray(int a[],int size){
+    for(int i=0;i<size;i++){
+        cin >> a[i];
+    }
+}
+
+int main()
+{
+    int t;
+    cin >> t;
+    
+    while(t--)
+    {
+        int d[3],s[3];
+        inputArray(d,3);
+        inputArray(s,3);
+        
+        int totalD = d[0] + d[1] + d[2];
+        int totalS = s[0] + s[1] + s[2];
+        
+        if(totalD != totalS)
+        {
+            if(totalD>totalS)
+            {
+                cout << "DRAGON" << endl;
+            }
+            else
+            {
+                cout << "SLOTH" << endl;
+            }
+        }
+        
+        else{
+            if(d[0]>s[0]){
+                cout << "DRAGON" << endl;
+            }
+            else if(s[0]>d[0]){
+                cout << "SLOTH" << endl;
+            }
+            else{
+                if(d[1]>s[1]){
+                    cout << "DRAGON" << endl;
+                }
+                else if(d[1]<s[1]){
+                    cout << "SLOTH" << endl;
+                }
+                else{
+                    cout << "TIE" << endl;
+                }
+            }
+        }
+    }
+    return 0;
+}
