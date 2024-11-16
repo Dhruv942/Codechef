@@ -1,0 +1,11 @@
+  if (arr[i] != 0) {
+          
+
+
+            swap(arr[i], arr[count]);
+           
+            count++;
+        }
+
+
+this is main function 
